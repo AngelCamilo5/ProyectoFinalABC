@@ -1,0 +1,1191 @@
+---
+title: "Linajes BA.1 y BA.2 de la variante Ómicron."
+author: "Angel Camilo, Santiago Becerril"
+date: "12 de junio del 2025"
+output: html_document
+---
+
+# Introducción
+
+En diciembre de 2019, autoridades sanitarias en China informaron sobre la aparición de un virus desconocido, el cual con el paso del tiempo y tras una serie de estudios realizados por la comunidad científica, se determinó que el nuevo virus guardaba similitudes con el causante del brote de SARS (Síndrome Respiratorio Agudo Grave), por lo que fue oficialmente nombrado SARS-CoV-2. La primera variante del virus que logró una propagación global se originó en Wuhan, China, y fue reconocida como la secuencia inicial, también llamada secuencia 0, perteneciente al linaje B según la clasificación Pango.
+
+Al igual que otros virus, el SARS-CoV-2 se estudia y clasifica en diferentes linajes y sublinajes, empleando con frecuencia el sistema Pango para su análisis evolutivo y epidemiológico.
+
+# Contexto
+
+El 26 de noviembre de 2021, la Organización Mundial de la Salud (OMS) designó una nueva variante del SARS-CoV-2 con el nombre de ómicron, identificada científicamente como B.1.1.529. Esta clasificación se basó en el análisis del Grupo Consultivo Técnico sobre la Evolución del Virus, que advirtió que dicha variante presentaba múltiples mutaciones capaces de influir en propiedades críticas del virus, como su capacidad de transmisión y la gravedad de la enfermedad que podía provocar. Por esta razón, fue catalogada como una variante de preocupación.
+
+La variante ómicron se subdivide en tres sublinajes principales: BA.1, BA.2 y BA.3. El primero en ser detectado fue el BA.1, identificado en Sudáfrica en noviembre de 2021. Poco tiempo después, el sublinaje BA.2 reemplazó al BA.1 en muchas regiones del mundo, convirtiéndose en el dominante entre enero y marzo de 2022. Por su parte, BA.3 surgió posteriormente, aunque con una presencia significativamente menor. Debido a su elevada capacidad de transmisión y su habilidad para evadir la respuesta inmune, estos tres sublinajes fueron considerados una seria amenaza para la salud pública global.
+
+# Hipótesis
+
+Dado que BA.1 y BA.2 son subvariantes pertenecientes a la variante ómicron del SARS-CoV-2, creemos que, al analizarse dentro de un mismo país, ambas deberían presentar mutaciones similares debido a su origen común y proximidad evolutiva, pero puede que haya una mutación en específico que haga que una subvariante sea más fácil de propagar que la otra.
+
+# ¿Cómo se procesarán los Datos?
+
+Se analizó el gen M de dos de los linajes Pango anteriormente mencionados, los cuales son BA.1 y BA.2; la investigación constó de 5 países de diferentes continentes los cuales fueron México, Estados Unidos, Francia, Sudáfrica e India. El desarrollo de este proyecto consta de 4 etapas: la lectura de archivos, la creación de data frames para cada caso particular, la declaración de funciones generales que reutiliza el programa, y por último el filtrado de datos para el almacenamiento de los mismos en los data frames creados.
+
+## Paso 1: Lectura de archivos.
+
+Para comenzar, se hizo la lectura del archivo que contiene la secuencia de referencia y los 8 archivos en formato FASTA de los respectivos linajes Pango, siendo 4 para BA.1 y otros 4 para BA.2. Se intentó tomar en cuenta analizar 100 secuencias por país, sin embargo en países como India o Sudáfrica tuvimos que trabajar con menos debido a que hubo una falta de disponibilidad de dichos datos dentro de NCBI.
+
+#### Linaje Pango BA.1
+
+Como se mencionó, se esperaba trabajar con 100 secuencias por país, y en este caso se logró con México y Estados Unidos.
+
+```{r}
+library(seqinr)
+fRef = read.fasta("sequence_ref.txt")
+fSouthAfrica1 = read.fasta("Omicron_1_SouthAfrica.fasta")
+fFrance1 = read.fasta("Omicron_1_France.fasta")
+fIndia1 = read.fasta("Omicron_1_India.fasta")
+fMexico1 = read.fasta("Omicron_1_Mexico.fasta")
+fUSA1 = read.fasta("Omicron_1_USA.fasta")
+```
+
+#### Linaje Pango BA.2
+
+Igual que antes se pudieron obtener 100 secuencias para México, Francia y Estados Unidos, pero para Sudáfrica solo se encontraron 35 secuencias y para India 73 secuencias.
+
+```{r}
+library(seqinr)
+fSouthAfrica2 = read.fasta("Omicron_2_SouthAfrica.fasta")
+fFrance2 = read.fasta("Omicron_2_France.fasta")
+fIndia2 = read.fasta("Omicron_2_India.fasta")
+fMexico2 = read.fasta("Omicron_2_Mexico.fasta")
+fUSA2 = read.fasta("Omicron_2_USA.fasta")
+```
+
+## Paso 2: Creación de data frames.
+
+Para este segundo paso hemos creado en total 10 data frames vacíos, 5 para el linaje Pango BA.1 y otros 5 para el linaje Pango BA.2, que contendrán los datos correspondientes al tipo de mutación, cambios en aminoácidos y codones y el tipo y número de gen.
+
+#### Linaje Pango BA.1
+
+```{r}
+df_Mexico_1 = data.frame (Mutation = character(), 
+                 CambioCodon = character(), 
+                 CambioAmino = character(),
+                 gen = character(),
+                 numeroGen = integer()
+)
+str(df_Mexico_1)
+
+df_Francia_1 = data.frame (Mutation = character(), 
+                 CambioCodon = character(), 
+                 CambioAmino = character(),
+                 gen = character(),
+                 numeroGen = integer()
+)
+str(df_Francia_1)
+
+df_India_1 = data.frame (Mutation = character(), 
+                 CambioCodon = character(), 
+                 CambioAmino = character(),
+                 gen = character(),
+                 numeroGen = integer()
+)
+str(df_India_1)
+
+df_SouthAfrica_1 = data.frame (Mutation = character(), 
+                 CambioCodon = character(), 
+                 CambioAmino = character(),
+                 gen = character(),
+                 numeroGen = integer()
+)
+str(df_SouthAfrica_1)
+
+df_USA_1 = data.frame (Mutation = character(), 
+                 CambioCodon = character(), 
+                 CambioAmino = character(),
+                 gen = character(),
+                 numeroGen = integer()
+)
+str(df_USA_1)
+
+```
+
+#### Linaje Pango BA.2
+
+```{r}
+df_Mexico_2 = data.frame (Mutation = character(), 
+                 CambioCodon = character(), 
+                 CambioAmino = character(),
+                 gen = character(),
+                 numeroGen = integer()
+)
+str(df_Mexico_2)
+
+df_Francia_2 = data.frame (Mutation = character(), 
+                 CambioCodon = character(), 
+                 CambioAmino = character(),
+                 gen = character(),
+                 numeroGen = integer()
+)
+str(df_Francia_2)
+
+df_India_2 = data.frame (Mutation = character(), 
+                 CambioCodon = character(), 
+                 CambioAmino = character(),
+                 gen = character(),
+                 numeroGen = integer()
+)
+str(df_India_2)
+
+df_SouthAfrica_2 = data.frame (Mutation = character(), 
+                 CambioCodon = character(), 
+                 CambioAmino = character(),
+                 gen = character(),
+                 numeroGen = integer()
+)
+str(df_SouthAfrica_2)
+
+df_USA_2 = data.frame (Mutation = character(), 
+                 CambioCodon = character(), 
+                 CambioAmino = character(),
+                 gen = character(),
+                 numeroGen = integer()
+)
+str(df_USA_2)
+
+```
+
+## Parte 3: Funciones generales del programa.
+
+Para esta sección declaramos una función general que se utiliza en el filtrado de datos con el fin de evitar la repetición de código.
+
+```{r}
+cambio_aminoacido = function(codon) {
+  resultado = switch(codon,
+                     "GAC" = "D", "GAU" = "D",
+                     "GAA" = "E", "GAG" = "E",
+                     "CGA" = "R", "CGC" = "R", "CGG" = "R", "CGU" = "R", "AGA" = "R", "AGG" = "R",
+                     "AAA" = "K", "AAG" = "K",
+                     "AAC" = "N", "AAU" = "N",
+                     "CAC" = "H", "CAU" = "H",
+                     "CAA" = "Q", "CAG" = "Q",
+                     "UCA" = "S", "UCC" = "S", "UCG" = "S", "UCU" = "S", "AGC" = "S", "AGU" = "S",
+                     "ACA" = "T", "ACC" = "T", "ACG" = "T", "ACU" = "T",
+                     "GCA" = "A", "GCC" = "A", "GCG" = "A", "GCU" = "A",
+                     "GGA" = "G", "GGC" = "G", "GGG" = "G", "GGU" = "G",
+                     "GUA" = "V", "GUC" = "V", "GUG" = "V", "GUU" = "V",
+                     "CCA" = "P", "CCC" = "P", "CCG" = "P", "CCU" = "P",
+                     "CUA" = "L", "CUC" = "L", "CUG" = "L", "CUU" = "L", "UUA" = "L", "UUG" = "L",
+                     "UUC" = "F", "UUU" = "F",
+                     "UAC" = "Y", "UAU" = "Y", 
+                     "AUA" = "I", "AUC" = "I", "AUU" = "I",
+                     "AUG" = "M",
+                     "UGG" = "W",
+                     "UGC" = "C", "UGU" = "C",
+                     "UAA" = "Terminación", "UAG" = "Terminación", "UGA" = "Terminación")
+  return(resultado)
+}
+
+```
+
+## Parte 4: Filtrado de Datos.
+
+En este último paso, se compararon todas las secuencias con la secuencia de referencia, esto con la finalidad de filtrar los datos y encontrar aquellos que pertencen al gen en el que se enfoca nuestra investigación. Aquí es donde se verán los cambios en aminoácidos y codones del gen M.
+
+#### México BA.1
+
+```{r}
+cant = 0
+cuenta = 0
+genRef = as.vector( fRef[[6]] )
+for (i in seq(6, length(fMexico1),12)){
+  genMexico1 = as.vector( fMexico1[[i]] )
+  genMexico1[which(genMexico1=="n")] = "x"
+  dif = which(genRef != genMexico1)
+  genRef[which(genRef=="t")] = "u"
+  genMexico1[which(genMexico1=="t")] = "u"
+  cuenta = cuenta + 1
+  if (length(genRef)==length(genMexico1)){
+    dif = which(genRef != genMexico1)
+    for (j in dif) {
+      mutacion = paste(toupper(genRef[j]), "to", toupper(genMexico1[j]), sep="")
+      num_codon= ((j-1)%/%3)+1
+      pos_en_codon=((j-1)%%3)+1
+      if (pos_en_codon==1){
+        anterior = paste(genRef[j:(j+2)], collapse = "")
+        nuevo = paste(genMexico1[j:(j+2)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==2){
+        anterior = paste(genRef[(j-1):(j+1)], collapse = "")
+        nuevo = paste(genMexico1[(j-1):(j+1)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==3){
+        anterior = paste(genRef[(j-2):(j)], collapse = "")
+        nuevo = paste(genMexico1[(j-2):(j)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (!grepl("x", nuevo)) {
+        amin1 = cambio_aminoacido(toupper(anterior))
+        amin2 = cambio_aminoacido(toupper(nuevo))
+        if (amin1 != amin2) {
+          cambio_en_amin = paste(amin1, num_codon, amin2, sep="")
+          cant = cant + 1
+          obs = list(mutacion,cambio_en_codon,cambio_en_amin,"M", cuenta); df_Mexico_1[cant,] = obs
+        }
+      }
+    }
+  }
+  else {
+    cant = cant + 1
+    obs = list("Deleción o inersción","Deleción o inersción","Deleción o inersción","M", cuenta);
+    df_Mexico_1[cant,] = obs
+  }
+}
+
+```
+
+#### Francia BA.1
+
+```{r}
+cant = 0
+cuenta = 0
+genRef = as.vector( fRef[[6]] )
+for (i in seq(6, length(fFrance1),12)){
+  genFrance1 = as.vector( fFrance1[[i]] )
+  genFrance1[which(genFrance1=="n")] = "x"
+  dif = which(genRef != genFrance1)
+  genRef[which(genRef=="t")] = "u"
+  genFrance1[which(genFrance1=="t")] = "u"
+  genFrance1[which(genFrance1=="r")] = "x"
+  genFrance1[which(genFrance1=="s")] = "x"
+  cuenta = cuenta + 1
+  if (length(genRef)==length(genFrance1)){
+    dif = which(genRef != genFrance1)
+    for (j in dif) {
+      mutacion = paste(toupper(genRef[j]), "to", toupper(genFrance1[j]), sep="")
+      num_codon= ((j-1)%/%3)+1
+      pos_en_codon=((j-1)%%3)+1
+      if (pos_en_codon==1){
+        anterior = paste(genRef[j:(j+2)], collapse = "")
+        nuevo = paste(genFrance1[j:(j+2)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==2){
+        anterior = paste(genRef[(j-1):(j+1)], collapse = "")
+        nuevo = paste(genFrance1[(j-1):(j+1)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==3){
+        anterior = paste(genRef[(j-2):(j)], collapse = "")
+        nuevo = paste(genFrance1[(j-2):(j)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (!grepl("x", nuevo)) {
+        amin1 = cambio_aminoacido(toupper(anterior))
+        amin2 = cambio_aminoacido(toupper(nuevo))
+        if (amin1 != amin2) {
+          cambio_en_amin = paste(amin1, num_codon, amin2, sep="")
+          cant = cant + 1
+          obs = list(mutacion,cambio_en_codon,cambio_en_amin,"M", cuenta); df_Francia_1[cant,] = obs
+        }
+      }
+    }
+  }
+  else {
+    cant = cant + 1
+    obs = list("Deleción o inersción","Deleción o inersción","Deleción o inersción","M", cuenta);
+    df_Francia_1[cant,] = obs
+  }
+}
+
+```
+
+#### Estados Unidos BA.1
+
+```{r}
+cant = 0
+cuenta = 0
+genRef = as.vector( fRef[[6]] )
+for (i in seq(6, length(fUSA1),12)){
+  genUSA1 = as.vector( fUSA1[[i]] )
+  genUSA1[which(genUSA1=="n")] = "x"
+  dif = which(genRef != genUSA1)
+  genRef[which(genRef=="t")] = "u"
+  genUSA1[which(genUSA1=="t")] = "u"
+  cuenta = cuenta + 1
+  if (length(genRef)==length(genUSA1)){
+    dif = which(genRef != genUSA1)
+    for (j in dif) {
+      mutacion = paste(toupper(genRef[j]), "to", toupper(genUSA1[j]), sep="")
+      num_codon= ((j-1)%/%3)+1
+      pos_en_codon=((j-1)%%3)+1
+      if (pos_en_codon==1){
+        anterior = paste(genRef[j:(j+2)], collapse = "")
+        nuevo = paste(genUSA1[j:(j+2)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==2){
+        anterior = paste(genRef[(j-1):(j+1)], collapse = "")
+        nuevo = paste(genUSA1[(j-1):(j+1)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==3){
+        anterior = paste(genRef[(j-2):(j)], collapse = "")
+        nuevo = paste(genUSA1[(j-2):(j)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (!grepl("x", nuevo)) {
+        amin1 = cambio_aminoacido(toupper(anterior))
+        amin2 = cambio_aminoacido(toupper(nuevo))
+        if (amin1 != amin2) {
+          cambio_en_amin = paste(amin1, num_codon, amin2, sep="")
+          cant = cant + 1
+          obs = list(mutacion,cambio_en_codon,cambio_en_amin,"M", cuenta); df_USA_1[cant,] = obs
+        }
+      }
+    }
+  }
+  else {
+    cant = cant + 1
+    obs = list("Deleción o inersción","Deleción o inersción","Deleción o inersción","M", cuenta);
+    df_USA_1[cant,] = obs
+  }
+}
+
+```
+
+#### India BA.1
+
+```{r}
+cant = 0
+cuenta = 0
+genRef = as.vector( fRef[[6]] )
+for (i in seq(6, length(fIndia1),12)){
+  genIndia1 = as.vector( fIndia1[[i]] )
+  genIndia1[which(genIndia1=="n")] = "x"
+  dif = which(genRef != genIndia1)
+  genRef[which(genRef=="t")] = "u"
+  genIndia1[which(genIndia1=="t")] = "u"
+  cuenta = cuenta + 1
+  if (length(genRef)==length(genIndia1)){
+    dif = which(genRef != genIndia1)
+    for (j in dif) {
+      mutacion = paste(toupper(genRef[j]), "to", toupper(genIndia1[j]), sep="")
+      num_codon= ((j-1)%/%3)+1
+      pos_en_codon=((j-1)%%3)+1
+      if (pos_en_codon==1){
+        anterior = paste(genRef[j:(j+2)], collapse = "")
+        nuevo = paste(genIndia1[j:(j+2)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==2){
+        anterior = paste(genRef[(j-1):(j+1)], collapse = "")
+        nuevo = paste(genIndia1[(j-1):(j+1)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==3){
+        anterior = paste(genRef[(j-2):(j)], collapse = "")
+        nuevo = paste(genIndia1[(j-2):(j)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (!grepl("x", nuevo)) {
+        amin1 = cambio_aminoacido(toupper(anterior))
+        amin2 = cambio_aminoacido(toupper(nuevo))
+        if (amin1 != amin2) {
+          cambio_en_amin = paste(amin1, num_codon, amin2, sep="")
+          cant = cant + 1
+          obs = list(mutacion,cambio_en_codon,cambio_en_amin,"M", cuenta); df_India_1[cant,] = obs
+        }
+      }
+    }
+  }
+  else {
+    cant = cant + 1
+    obs = list("Deleción o inersción","Deleción o inersción","Deleción o inersción","M", cuenta);
+    df_India_1[cant,] = obs
+  }
+}
+
+```
+
+#### Sudáfrica BA.1
+
+```{r}
+cant = 0
+cuenta = 0
+genRef = as.vector( fRef[[6]] )
+for (i in seq(6, length(fSouthAfrica1),12)){
+  genSouthAfrica1 = as.vector( fSouthAfrica1[[i]] )
+  genSouthAfrica1[which(genSouthAfrica1=="n")] = "x"
+  dif = which(genRef != genSouthAfrica1)
+  genRef[which(genRef=="t")] = "u"
+  genSouthAfrica1[which(genSouthAfrica1=="t")] = "u"
+  cuenta = cuenta + 1
+  if (length(genRef)==length(genSouthAfrica1)){
+    dif = which(genRef != genSouthAfrica1)
+    for (j in dif) {
+      mutacion = paste(toupper(genRef[j]), "to", toupper(genSouthAfrica1[j]), sep="")
+      num_codon= ((j-1)%/%3)+1
+      pos_en_codon=((j-1)%%3)+1
+      if (pos_en_codon==1){
+        anterior = paste(genRef[j:(j+2)], collapse = "")
+        nuevo = paste(genSouthAfrica1[j:(j+2)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==2){
+        anterior = paste(genRef[(j-1):(j+1)], collapse = "")
+        nuevo = paste(genSouthAfrica1[(j-1):(j+1)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==3){
+        anterior = paste(genRef[(j-2):(j)], collapse = "")
+        nuevo = paste(genSouthAfrica1[(j-2):(j)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (!grepl("x", nuevo)) {
+        amin1 = cambio_aminoacido(toupper(anterior))
+        amin2 = cambio_aminoacido(toupper(nuevo))
+        if (amin1 != amin2) {
+          cambio_en_amin = paste(amin1, num_codon, amin2, sep="")
+          cant = cant + 1
+          obs = list(mutacion,cambio_en_codon,cambio_en_amin,"M", cuenta); df_SouthAfrica_1[cant,] = obs
+        }
+      }
+    }
+  }
+  else {
+    cant = cant + 1
+    obs = list("Deleción o inersción","Deleción o inersción","Deleción o inersción","M", cuenta);
+    df_SouthAfrica_1[cant,] = obs
+  }
+}
+
+```
+
+#### México BA.2
+
+```{r}
+cant = 0
+cuenta = 0
+genRef = as.vector( fRef[[6]] )
+for (i in seq(6, length(fMexico2),12)){
+  genMexico2 = as.vector( fMexico2[[i]] )
+  genMexico2[which(genMexico2=="n")] = "x"
+  dif = which(genRef != genMexico2)
+  genRef[which(genRef=="t")] = "u"
+  genMexico2[which(genMexico2=="t")] = "u"
+  cuenta = cuenta + 1
+  if (length(genRef)==length(genMexico2)){
+    dif = which(genRef != genMexico2)
+    for (j in dif) {
+      mutacion = paste(toupper(genRef[j]), "to", toupper(genMexico2[j]), sep="")
+      num_codon= ((j-1)%/%3)+1
+      pos_en_codon=((j-1)%%3)+1
+      if (pos_en_codon==1){
+        anterior = paste(genRef[j:(j+2)], collapse = "")
+        nuevo = paste(genMexico2[j:(j+2)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==2){
+        anterior = paste(genRef[(j-1):(j+1)], collapse = "")
+        nuevo = paste(genMexico2[(j-1):(j+1)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==3){
+        anterior = paste(genRef[(j-2):(j)], collapse = "")
+        nuevo = paste(genMexico2[(j-2):(j)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (!grepl("x", nuevo)) {
+        amin1 = cambio_aminoacido(toupper(anterior))
+        amin2 = cambio_aminoacido(toupper(nuevo))
+        if (amin1 != amin2) {
+          cambio_en_amin = paste(amin1, num_codon, amin2, sep="")
+          cant = cant + 1
+          obs = list(mutacion,cambio_en_codon,cambio_en_amin,"M", cuenta); df_Mexico_2[cant,] = obs
+        }
+      }
+    }
+  }
+  else {
+    cant = cant + 1
+    obs = list("Deleción o inersción","Deleción o inersción","Deleción o inersción","M", cuenta);
+    df_Mexico_2[cant,] = obs
+  }
+}
+
+```
+
+#### Francia BA.2
+
+```{r}
+cant = 0
+cuenta = 0
+genRef = as.vector( fRef[[6]] )
+for (i in seq(6, length(fFrance2),12)){
+  genFrance2 = as.vector( fFrance2[[i]] )
+  genFrance2[which(genFrance2=="n")] = "x"
+  dif = which(genRef != genFrance2)
+  genRef[which(genRef=="t")] = "u"
+  genFrance2[which(genFrance2=="t")] = "u"
+  genFrance2[which(genFrance2=="r")] = "x"
+  genFrance2[which(genFrance2=="s")] = "x"
+  cuenta = cuenta + 1
+  if (length(genRef)==length(genFrance2)){
+    dif = which(genRef != genFrance2)
+    for (j in dif) {
+      mutacion = paste(toupper(genRef[j]), "to", toupper(genFrance2[j]), sep="")
+      num_codon= ((j-1)%/%3)+1
+      pos_en_codon=((j-1)%%3)+1
+      if (pos_en_codon==1){
+        anterior = paste(genRef[j:(j+2)], collapse = "")
+        nuevo = paste(genFrance2[j:(j+2)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==2){
+        anterior = paste(genRef[(j-1):(j+1)], collapse = "")
+        nuevo = paste(genFrance2[(j-1):(j+1)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==3){
+        anterior = paste(genRef[(j-2):(j)], collapse = "")
+        nuevo = paste(genFrance2[(j-2):(j)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (!grepl("x", nuevo)) {
+        amin1 = cambio_aminoacido(toupper(anterior))
+        amin2 = cambio_aminoacido(toupper(nuevo))
+        if (amin1 != amin2) {
+          cambio_en_amin = paste(amin1, num_codon, amin2, sep="")
+          cant = cant + 1
+          obs = list(mutacion,cambio_en_codon,cambio_en_amin,"M", cuenta); df_Francia_2[cant,] = obs
+        }
+      }
+    }
+  }
+  else {
+    cant = cant + 1
+    obs = list("Deleción o inersción","Deleción o inersción","Deleción o inersción","M", cuenta);
+    df_Francia_2[cant,] = obs
+  }
+}
+
+```
+
+#### Estados Unidos BA.2
+
+```{r}
+cant = 0
+cuenta = 0
+genRef = as.vector( fRef[[6]] )
+for (i in seq(6, length(fUSA2),12)){
+  genUSA2 = as.vector( fUSA2[[i]] )
+  genUSA2[which(genUSA2=="n")] = "x"
+  genUSA2[which(genUSA2=="r")] = "x"
+  genUSA2[which(genUSA2=="y")] = "x"
+  dif = which(genRef != genUSA2)
+  genRef[which(genRef=="t")] = "u"
+  genUSA2[which(genUSA2=="t")] = "u"
+  cuenta = cuenta + 1
+  if (length(genRef)==length(genUSA2)){
+    dif = which(genRef != genUSA2)
+    for (j in dif) {
+      mutacion = paste(toupper(genRef[j]), "to", toupper(genUSA2[j]), sep="")
+      num_codon= ((j-1)%/%3)+1
+      pos_en_codon=((j-1)%%3)+1
+      if (pos_en_codon==1){
+        anterior = paste(genRef[j:(j+2)], collapse = "")
+        nuevo = paste(genUSA2[j:(j+2)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==2){
+        anterior = paste(genRef[(j-1):(j+1)], collapse = "")
+        nuevo = paste(genUSA2[(j-1):(j+1)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==3){
+        anterior = paste(genRef[(j-2):(j)], collapse = "")
+        nuevo = paste(genUSA2[(j-2):(j)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (!grepl("x", nuevo)) {
+        amin1 = cambio_aminoacido(toupper(anterior))
+        amin2 = cambio_aminoacido(toupper(nuevo))
+        if (amin1 != amin2) {
+          cambio_en_amin = paste(amin1, num_codon, amin2, sep="")
+          cant = cant + 1
+          obs = list(mutacion,cambio_en_codon,cambio_en_amin,"M", cuenta); df_USA_2[cant,] = obs
+        }
+      }
+    }
+  }
+  else {
+    cant = cant + 1
+    obs = list("Deleción o inersción","Deleción o inersción","Deleción o inersción","M", cuenta);
+    df_USA_2[cant,] = obs
+  }
+}
+
+```
+
+#### India BA.2
+
+```{r}
+cant = 0
+cuenta = 0
+genRef = as.vector( fRef[[6]] )
+for (i in seq(6, length(fIndia2),12)){
+  genIndia2 = as.vector( fIndia2[[i]] )
+  genIndia2[which(genIndia2=="n")] = "x"
+  genIndia2[which(genIndia2=="y")] = "x"
+  genIndia2[which(genIndia2=="r")] = "x"
+  genIndia2[which(genIndia2=="s")] = "x"
+  dif = which(genRef != genIndia2)
+  genRef[which(genRef=="t")] = "u"
+  genIndia2[which(genIndia2=="t")] = "u"
+  cuenta = cuenta + 1
+  if (length(genRef)==length(genIndia2)){
+    dif = which(genRef != genIndia2)
+    for (j in dif) {
+      mutacion = paste(toupper(genRef[j]), "to", toupper(genIndia2[j]), sep="")
+      num_codon= ((j-1)%/%3)+1
+      pos_en_codon=((j-1)%%3)+1
+      if (pos_en_codon==1){
+        anterior = paste(genRef[j:(j+2)], collapse = "")
+        nuevo = paste(genIndia2[j:(j+2)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==2){
+        anterior = paste(genRef[(j-1):(j+1)], collapse = "")
+        nuevo = paste(genIndia2[(j-1):(j+1)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==3){
+        anterior = paste(genRef[(j-2):(j)], collapse = "")
+        nuevo = paste(genIndia2[(j-2):(j)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (!grepl("x", nuevo)) {
+        amin1 = cambio_aminoacido(toupper(anterior))
+        amin2 = cambio_aminoacido(toupper(nuevo))
+        if (amin1 != amin2) {
+          cambio_en_amin = paste(amin1, num_codon, amin2, sep="")
+          cant = cant + 1
+          obs = list(mutacion,cambio_en_codon,cambio_en_amin,"M", cuenta); df_India_2[cant,] = obs
+        }
+      }
+    }
+  }
+  else {
+    cant = cant + 1
+    obs = list("Deleción o inersción","Deleción o inersción","Deleción o inersción","M", cuenta);
+    df_India_2[cant,] = obs
+  }
+}
+
+```
+
+#### Sudáfrica BA.2
+
+```{r}
+cant = 0
+cuenta = 0
+genRef = as.vector( fRef[[6]] )
+for (i in seq(6, length(fSouthAfrica2),12)){
+  genSouthAfrica2 = as.vector( fSouthAfrica2[[i]] )
+  genSouthAfrica2[which(genSouthAfrica2=="n")] = "x"
+  dif = which(genRef != genSouthAfrica2)
+  genRef[which(genRef=="t")] = "u"
+  genSouthAfrica2[which(genSouthAfrica2=="t")] = "u"
+  cuenta = cuenta + 1
+  if (length(genRef)==length(genSouthAfrica2)){
+    dif = which(genRef != genSouthAfrica2)
+    for (j in dif) {
+      mutacion = paste(toupper(genRef[j]), "to", toupper(genSouthAfrica2[j]), sep="")
+      num_codon= ((j-1)%/%3)+1
+      pos_en_codon=((j-1)%%3)+1
+      if (pos_en_codon==1){
+        anterior = paste(genRef[j:(j+2)], collapse = "")
+        nuevo = paste(genSouthAfrica2[j:(j+2)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==2){
+        anterior = paste(genRef[(j-1):(j+1)], collapse = "")
+        nuevo = paste(genSouthAfrica2[(j-1):(j+1)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (pos_en_codon==3){
+        anterior = paste(genRef[(j-2):(j)], collapse = "")
+        nuevo = paste(genSouthAfrica2[(j-2):(j)], collapse = "")
+        cambio_en_codon = paste(toupper(anterior), "to", toupper(nuevo), sep="")
+      }
+      if (!grepl("x", nuevo)) {
+        amin1 = cambio_aminoacido(toupper(anterior))
+        amin2 = cambio_aminoacido(toupper(nuevo))
+        if (amin1 != amin2) {
+          cambio_en_amin = paste(amin1, num_codon, amin2, sep="")
+          cant = cant + 1
+          obs = list(mutacion,cambio_en_codon,cambio_en_amin,"M", cuenta); df_SouthAfrica_2[cant,] = obs
+        }
+      }
+    }
+  }
+  else {
+    cant = cant + 1
+    obs = list("Deleción o inersción","Deleción o inersción","Deleción o inersción","M", cuenta);
+    df_SouthAfrica_2[cant,] = obs
+  }
+}
+
+```
+
+### Resultados
+
+#### Mexico BA.1
+
+```{r}
+
+library(dplyr)
+library(ggplot2)
+df_Mexico_Amino1 = filter(
+  dplyr::summarize(
+    select(
+      group_by(df_Mexico_1,CambioAmino),
+      Mutation:gen
+    ),
+    Mutation = first(Mutation),
+    CambioCodon = first(CambioCodon),
+    gen = first(gen),
+    Cuenta = n()
+  ),
+  Cuenta>=1
+)
+
+df_Mexico_Amino1 = df_Mexico_Amino1[order(-df_Mexico_Amino1$Cuenta), ]
+df_Mexico_Amino1
+
+
+pM1 = ggplot(df_Mexico_Amino1)
+pM1 = pM1 + aes(x=CambioAmino, y=Cuenta, fill=CambioAmino, label=Cuenta)
+pM1 = pM1 + ggtitle("Cambio de Aminoácidos México BA.1")
+pM1 = pM1 + labs(x="Amino", y="Frecuencia", fill="Frecuencia")
+pM1 = pM1 + geom_bar(stat = "identity")
+pM1 = pM1 + geom_text(stat = "identity", vjust=1.5)
+pM1
+
+```
+
+#### Francia BA.1
+
+```{r}
+
+library(dplyr)
+df_Francia_Amino1 = filter(
+  dplyr::summarize(
+    select(
+      group_by(df_Francia_1,CambioAmino),
+      Mutation:gen
+    ),
+    Mutation = first(Mutation),
+    CambioCodon = first(CambioCodon),
+    gen = first(gen),
+    Cuenta = n()
+  ),
+  Cuenta>=1
+)
+
+df_Francia_Amino1 = df_Francia_Amino1[order(-df_Francia_Amino1$Cuenta), ]
+df_Francia_Amino1
+
+
+pF1 = ggplot(df_Francia_Amino1)
+pF1 = pF1 + aes(x=CambioAmino, y=Cuenta, fill=CambioAmino, label=Cuenta)
+pF1 = pF1 + ggtitle("Cambio de Aminoácidos Francia BA.1")
+pF1 = pF1 + labs(x="Amino", y="Frecuencia", fill="Frecuencia")
+pF1 = pF1 + geom_bar(stat = "identity")
+pF1 = pF1 + geom_text(stat = "identity", vjust=1.5)
+pF1
+
+```
+
+#### Estados Unidos BA.1
+
+```{r}
+
+library(dplyr)
+df_USA_Amino1 = filter(
+  dplyr::summarize(
+    select(
+      group_by(df_USA_1,CambioAmino),
+      Mutation:gen
+    ),
+    Mutation = first(Mutation),
+    CambioCodon = first(CambioCodon),
+    gen = first(gen),
+    Cuenta = n()
+  ),
+  Cuenta>=1
+)
+
+df_USA_Amino1 = df_USA_Amino1[order(-df_USA_Amino1$Cuenta), ]
+df_USA_Amino1
+
+pUSA1 = ggplot(df_USA_Amino1)
+pUSA1 = pUSA1 + aes(x=CambioAmino, y=Cuenta, fill=CambioAmino, label=Cuenta)
+pUSA1 = pUSA1 + ggtitle("Cambio de Aminoácidos Estados Unidos BA.1")
+pUSA1 = pUSA1 + labs(x="Amino", y="Frecuencia", fill="Frecuencia")
+pUSA1 = pUSA1 + geom_bar(stat = "identity")
+pUSA1 = pUSA1 + geom_text(stat = "identity", vjust=1.5)
+pUSA1
+
+```
+
+#### India BA.1
+
+```{r}
+
+library(dplyr)
+df_India_Amino1 = filter(
+  dplyr::summarize(
+    select(
+      group_by(df_India_1,CambioAmino),
+      Mutation:gen
+    ),
+    Mutation = first(Mutation),
+    CambioCodon = first(CambioCodon),
+    gen = first(gen),
+    Cuenta = n()
+  ),
+  Cuenta>=1
+)
+
+df_India_Amino1 = df_India_Amino1[order(-df_India_Amino1$Cuenta), ]
+df_India_Amino1
+
+
+pI1 = ggplot(df_India_Amino1)
+pI1 = pI1 + aes(x=CambioAmino, y=Cuenta, fill=CambioAmino, label=Cuenta)
+pI1 = pI1 + ggtitle("Cambio de Aminoácidos India BA.1")
+pI1 = pI1 + labs(x="Amino", y="Frecuencia", fill="Frecuencia")
+pI1 = pI1 + geom_bar(stat = "identity")
+pI1 = pI1 + geom_text(stat = "identity", vjust=1.5)
+pI1
+```
+
+#### Sudáfrica BA.1
+
+```{r}
+
+library(dplyr)
+df_SouthAfrica_Amino1 = filter(
+  dplyr::summarize(
+    select(
+      group_by(df_SouthAfrica_1,CambioAmino),
+      Mutation:gen
+    ),
+    Mutation = first(Mutation),
+    CambioCodon = first(CambioCodon),
+    gen = first(gen),
+    Cuenta = n()
+  ),
+  Cuenta>=1
+)
+
+df_SouthAfrica_Amino1 = df_SouthAfrica_Amino1[order(-df_SouthAfrica_Amino1$Cuenta), ]
+df_SouthAfrica_Amino1
+
+pSA1 = ggplot(df_SouthAfrica_Amino1)
+pSA1 = pSA1 + aes(x=CambioAmino, y=Cuenta, fill=CambioAmino, label=Cuenta)
+pSA1 = pSA1 + ggtitle("Cambio de Aminoácidos Sudáfrica BA.1")
+pSA1 = pSA1 + labs(x="Amino", y="Frecuencia", fill="Frecuencia")
+pSA1 = pSA1 + geom_bar(stat = "identity")
+pSA1 = pSA1 + geom_text(stat = "identity", vjust=1.5)
+pSA1
+
+```
+
+#### Mixta BA.1
+
+Se creó una tabla que contiene las mutaciones de los 5 países para su graficación.
+
+```{r}
+
+tabla_combinada_BA1 <- rbind(df_Mexico_1, df_Francia_1, df_India_1, df_SouthAfrica_1, df_USA_1)
+
+library(dplyr)
+tabla_final_BA1 = filter(
+  summarise(
+    select(
+      group_by(tabla_combinada_BA1, CambioAmino),
+      Mutation:gen
+    ),
+    Mutation = first(Mutation),
+    CambioAmino = first(CambioAmino),
+    gen = first(gen),
+    Cuenta = n()
+  ),
+  Cuenta >= 1 
+)
+
+tabla_final_BA1 = tabla_final_BA1[order(-tabla_final_BA1$Cuenta), ]
+tabla_final_BA1
+
+pBA1 = ggplot(tabla_final_BA1)
+pBA1 = pBA1 + aes(x=CambioAmino, y=Cuenta, fill=CambioAmino, label=Cuenta)
+pBA1 = pBA1 + ggtitle("Cambio de Aminoácidos BA.1")
+pBA1 = pBA1 + labs(x="Amino", y="Frecuencia", fill="Frecuencia")
+pBA1 = pBA1 + geom_bar(stat = "identity")
+pBA1 = pBA1 + geom_text(stat = "identity", vjust=1.5)
+pBA1
+
+```
+
+#### Mexico BA.2
+
+```{r}
+
+library(dplyr)
+df_Mexico_Amino2 = filter(
+  dplyr::summarize(
+    select(
+      group_by(df_Mexico_2,CambioAmino),
+      Mutation:gen
+    ),
+    Mutation = first(Mutation),
+    CambioCodon = first(CambioCodon),
+    gen = first(gen),
+    Cuenta = n()
+  ),
+  Cuenta>=1
+)
+
+df_Mexico_Amino2 = df_Mexico_Amino2[order(-df_Mexico_Amino2$Cuenta), ]
+df_Mexico_Amino2
+
+pM2 = ggplot(df_Mexico_Amino2)
+pM2 = pM2 + aes(x=CambioAmino, y=Cuenta, fill=CambioAmino, label=Cuenta)
+pM2 = pM2 + ggtitle("Cambio de Aminoácidos México BA.2")
+pM2 = pM2 + labs(x="Amino", y="Frecuencia", fill="Frecuencia")
+pM2 = pM2 + geom_bar(stat = "identity")
+pM2 = pM2 + geom_text(stat = "identity", vjust=1.5)
+pM2
+
+```
+
+#### Francia BA.2
+
+```{r}
+
+library(dplyr)
+df_Francia_Amino2 = filter(
+  dplyr::summarize(
+    select(
+      group_by(df_Francia_2,CambioAmino),
+      Mutation:gen
+    ),
+    Mutation = first(Mutation),
+    CambioCodon = first(CambioCodon),
+    gen = first(gen),
+    Cuenta = n()
+  ),
+  Cuenta>=1
+)
+
+df_Francia_Amino2 = df_Francia_Amino2[order(-df_Francia_Amino2$Cuenta), ]
+df_Francia_Amino2
+
+
+pF2 = ggplot(df_Francia_Amino2)
+pF2 = pF2 + aes(x=CambioAmino, y=Cuenta, fill=CambioAmino, label=Cuenta)
+pF2 = pF2 + ggtitle("Cambio de Aminoácidos Francia BA.2")
+pF2 = pF2 + labs(x="Amino", y="Frecuencia", fill="Frecuencia")
+pF2 = pF2 + geom_bar(stat = "identity")
+pF2 = pF2 + geom_text(stat = "identity", vjust=1.5)
+pF2
+```
+
+#### Estados Unidos BA.2
+
+```{r}
+
+library(dplyr)
+df_USA_Amino2 = filter(
+  dplyr::summarize(
+    select(
+      group_by(df_USA_2,CambioAmino),
+      Mutation:gen
+    ),
+    Mutation = first(Mutation),
+    CambioCodon = first(CambioCodon),
+    gen = first(gen),
+    Cuenta = n()
+  ),
+  Cuenta>=1
+)
+
+df_USA_Amino2 = df_USA_Amino2[order(-df_USA_Amino2$Cuenta), ]
+df_USA_Amino2
+
+pUSA2 = ggplot(df_USA_Amino2)
+pUSA2 = pUSA2 + aes(x=CambioAmino, y=Cuenta, fill=CambioAmino, label=Cuenta)
+pUSA2 = pUSA2 + ggtitle("Cambio de Aminoácidos Estados Unidos BA.2")
+pUSA2 = pUSA2 + labs(x="Amino", y="Frecuencia", fill="Frecuencia")
+pUSA2 = pUSA2 + geom_bar(stat = "identity")
+pUSA2 = pUSA2 + geom_text(stat = "identity", vjust=1.5)
+pUSA2
+
+```
+
+#### India BA.2
+
+```{r}
+
+library(dplyr)
+df_India_Amino2 = filter(
+  dplyr::summarize(
+    select(
+      group_by(df_India_2,CambioAmino),
+      Mutation:gen
+    ),
+    Mutation = first(Mutation),
+    CambioCodon = first(CambioCodon),
+    gen = first(gen),
+    Cuenta = n()
+  ),
+  Cuenta>=1
+)
+
+df_India_Amino2 = df_India_Amino2[order(-df_India_Amino2$Cuenta), ]
+df_India_Amino2
+
+pI2 = ggplot(df_India_Amino2)
+pI2 = pI2 + aes(x=CambioAmino, y=Cuenta, fill=CambioAmino, label=Cuenta)
+pI2 = pI2 + ggtitle("Cambio de Aminoácidos India BA.2")
+pI2 = pI2 + labs(x="Amino", y="Frecuencia", fill="Frecuencia")
+pI2 = pI2 + geom_bar(stat = "identity")
+pI2 = pI2 + geom_text(stat = "identity", vjust=1.5)
+pI2
+
+```
+
+#### Sudáfrica BA.2
+
+```{r}
+
+library(dplyr)
+df_SouthAfrica_Amino2 = filter(
+  dplyr::summarize(
+    select(
+      group_by(df_SouthAfrica_2,CambioAmino),
+      Mutation:gen
+    ),
+    Mutation = first(Mutation),
+    CambioCodon = first(CambioCodon),
+    gen = first(gen),
+    Cuenta = n()
+  ),
+  Cuenta>=1
+)
+
+df_SouthAfrica_Amino2 = df_SouthAfrica_Amino2[order(-df_SouthAfrica_Amino2$Cuenta), ]
+df_SouthAfrica_Amino2
+
+pSA2 = ggplot(df_SouthAfrica_Amino2)
+pSA2 = pSA2 + aes(x=CambioAmino, y=Cuenta, fill=CambioAmino, label=Cuenta)
+pSA2 = pSA2 + ggtitle("Cambio de Aminoácidos Sudáfrica BA.2")
+pSA2 = pSA2 + labs(x="Amino", y="Frecuencia", fill="Frecuencia")
+pSA2 = pSA2 + geom_bar(stat = "identity")
+pSA2 = pSA2 + geom_text(stat = "identity", vjust=1.5)
+pSA2
+
+```
+
+#### Mixta BA.2
+
+Se creó una tabla que contiene las mutaciones de los 5 países para su graficación.
+
+```{r}
+
+tabla_combinada_BA2 <- rbind(df_Mexico_2, df_Francia_2, df_India_2, df_SouthAfrica_2, df_USA_2)
+
+library(dplyr)
+tabla_final_BA2 = filter(
+  summarise(
+    select(
+      group_by(tabla_combinada_BA2, CambioAmino),
+      Mutation:gen
+    ),
+    Mutation = first(Mutation),
+    CambioAmino = first(CambioAmino),
+    gen = first(gen),
+    Cuenta = n()
+  ),
+  Cuenta >= 1 
+)
+
+tabla_final_BA2 = tabla_final_BA2[order(-tabla_final_BA2$Cuenta), ]
+tabla_final_BA2
+
+
+pBA2 = ggplot(tabla_final_BA2)
+pBA2 = pBA2 + aes(x=CambioAmino, y=Cuenta, fill=CambioAmino, label=Cuenta)
+pBA2 = pBA2 + ggtitle("Cambio de Aminoácidos BA.2")
+pBA2 = pBA2 + labs(x="Amino", y="Frecuencia", fill="Frecuencia")
+pBA2 = pBA2 + geom_bar(stat = "identity")
+pBA2 = pBA2 + geom_text(stat = "identity", vjust=1.5)
+pBA2
+
+```
+
+#### Mixta BA.1 y BA.2
+
+En este caso se creó una tabla donde se almacenan en un solo lugar las mutaciones encontradas en los 5 países en ambos linajes.
+
+```{r}
+
+tabla_combinada_linajes <- rbind(tabla_final_BA1, tabla_final_BA2)
+
+library(dplyr)
+tabla_final_linajes = filter(
+  summarise(
+    select(
+      group_by(tabla_combinada_linajes, CambioAmino),
+      Mutation:gen
+    ),
+    Mutation = first(Mutation),
+    CambioAmino = first(CambioAmino),
+    gen = first(gen),
+    Cuenta = n()
+  ),
+  Cuenta >= 1 & Cuenta < 3
+)
+
+tabla_final_linajes = tabla_final_linajes[order(-tabla_final_linajes$Cuenta), ]
+tabla_final_linajes
+
+
+pFinal = ggplot(tabla_final_linajes)
+pFinal = pFinal + aes(x=CambioAmino, y=Cuenta, fill=CambioAmino, label=Cuenta)
+pFinal = pFinal + ggtitle("Cambio de Aminoácidos Ambos")
+pFinal = pFinal + labs(x="Amino", y="Frecuencia", fill="Frecuencia")
+pFinal = pFinal + geom_bar(stat = "identity")
+pFinal = pFinal + geom_text(stat = "identity", vjust=1.5)
+pFinal
+
+```
+
+### Análisis
+
+Los resultados obtenidos muestran que las subvariantes BA.1 y BA.2 comparten cuatro mutaciones en común: A104V, A63T, D3G y Q19E. Al analizar la gráfica conjunta de ambas subvariantes, se identificaron mutaciones exclusivas para cada una: A2V, A69S, D3H, L87F, T30A, V23I y V70F fueron exclusivas de BA.2, mientras que D3V, I73V e I82T se presentaron únicamente en BA.1. Gracias a estos datos, podemos identificar que la variante BA.2 es la que cuenta con más mutaciones.
+
+De acuerdo con los datos recopilados y de la investigación realizada, podemos concluir que la subvariante BA.2 presenta características genéticas que la hacen potencialmente más contagiosa.
+
+### Conclusiones
+
+En conclusión, las mutaciones del gen M hicieron que la subvariante BA.2 fuera más contagiosa que BA.1, por lo cual hubo una mayor propagación que generó ola de contagios y preocupación entre la población mundial. Como BA.2 era una subvariante nueva, los científicos tuvieron que investigar su comportamiento para entender cómo afectaba las medidas de prevención en cada país, en donde ahora se debía tener en cuenta una posible nueva variante en el futuro.
+
+### Referencias
+
+NewYork‑Presbyterian. (s. f.). Omicron Subvariant BA.2: What You Need to Know [Artículo en español]. Recuperado el 3 de junio de 2025, de NewYork‑Presbyterian Health Matters: https://healthmatters.nyp.org/omicron-subvariant-ba-2-what-you-need-to-know-in-spanish/
+
+Pan American Health Organization. (s. f.). Enfermedad por el Coronavirus (COVID-19). Recuperado el 10 de junio de 2025, de Pan American Health Organization: https://www.paho.org/es/enfermedad-por-coronavirus-covid-19
+
+El Financiero. (31 de enero de 2022). Variante BA.2 de ómicron: detectan primer caso en México. El Financiero. Recuperado el 12 de junio de 2025, de https://www.elfinanciero.com.mx/salud/2022/01/31/variante-ba2-de-omicron-detectan-primer-caso-en-mexico/
+
